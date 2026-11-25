@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* Palettes du cahier des charges (tokens Tailwind v4) */
+@theme {
+  --color-factory-bg: #0e1116;
+  --color-factory-card: #171b23;
+  --color-factory-card2: #1f2430;
+  --color-factory-line: #2c3240;
+  --color-factory-acc: #f5c400;
+  --color-factory-ok: #3ddc84;
+  --color-factory-warn: #ffb020;
+  --color-factory-bad: #ff4d4d;
+  --color-factory-cyan: #38e8ff;
+  --color-factory-mut: #9aa3b3;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0e1116;
+  color: #eef1f6;
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Barres de progression */
+.progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #232a37;
+  overflow: hidden;
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* Voyants d'état */
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex: none;
+}
+.dot-ok { background: #3ddc84; box-shadow: 0 0 8px #3ddc84; }
+.dot-warn { background: #ffb020; box-shadow: 0 0 8px #ffb020; }
+.dot-bad { background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; }
+.dot-idle { background: #64748b; box-shadow: none; }
+
+/* Fiche tiroir */
+.drawer-in { animation: drawer-in 220ms ease-out; }
+@keyframes drawer-in {
+  from { transform: translateX(-14px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Carte atelier */
+.workshop-card { transition: border-color .15s ease, background .15s ease; }
+.workshop-card:hover { border-color: #f5c400; }
+.workshop-card.active { border-color: #f5c400; }
+
+::selection { background: rgba(245, 196, 0, .3); }
