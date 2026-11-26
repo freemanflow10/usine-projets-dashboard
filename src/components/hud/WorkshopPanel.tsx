@@ -146,7 +146,7 @@ function WorkshopCards({ workshops, openId, onOpen }: WorkshopViewProps): ReactE
                 type="button"
                 onClick={() => onOpen(workshop.id)}
                 aria-expanded={isOpen}
-                aria-controls={`workshop-details-${workshop.id}`}
+                aria-controls={isOpen ? `workshop-details-${workshop.id}` : undefined}
                 className="min-w-0 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-factory-acc"
               >
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-factory-mut">
