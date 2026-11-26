@@ -42,3 +42,12 @@ Créés : `orchestration/CODEX-DONE.md`, `public/models/.gitkeep`, `src/componen
 - Capture Playwright (Chrome headless) sur `https://freemanflow10.github.io/usine-projets-dashboard/` : canvas confirmé — usine isométrique complète (8 stations, 2 tapis, robots, cabine, véhicule), HUD opérationnel (KPIs, badge MAQUETTE, Pause, panneau 1 colonne). HTTP 200, bundle servis.
 - 14 requêtes `404 models/*.glb` : **comportement prévu** du fallback procédural (`ModelLoader.tsx` sonde par fetch + magic glTF). Aucune erreur rouge, scène intacte.
 - Mineur (non bloquant) : commentaire `ModelLoader.tsx:34` « un seul probe par URL » non tenu à la concurrence — chaque instance relance un fetch avant résolution du cache `pending` (14 404 au lieu de 6). Pouvoir coalescer le probe `pending` si on veut zéro doublon.
+
+## Correctif écran noir WebGL (26/11, Claude)
+
+**Cause** : quand WebGL est indisponible (désactivé par l'entreprise/navigateur, matériel non supporté), `<Canvas>` de R3F fait `throw error` hors de React → démontage de tout l'arbre → page 100 % noire sans message (reproduit : `rootChildren:0`, `bodyText:""`). Aucun garde-fou n'existait.
+
+**Fix** (`main a63a38e`, publié `gh-pages 59eb968`) :
+- `src/App.tsx` : détection WebGL (`webgl/canvas.getContext`) avant de monter le canvas.
+- `src/components/scene/CanvasBoundary.tsx` (créé) : error boundary + prop `disabled`, affiche « 🏭 Vue 3D indisponible » avec le détail technique. Le dashboard/HUD reste visible dans tous les cas.
+- Vérifié sur le site public : WebGL OK → scène affichée ; WebGL off → message lisible (plus aucun écran noir possible).
