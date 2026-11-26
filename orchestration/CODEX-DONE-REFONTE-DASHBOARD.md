@@ -1,7 +1,7 @@
 ---
 title: Refonte du dashboard global
 type: delivery-report
-status: review-pending
+status: completed
 date: 2026-11-26
 ---
 
@@ -34,6 +34,9 @@ date: 2026-11-26
 ## Revue et publication
 
 - Base de travail : `main` à `3cfd799`.
-- Revue Claude : à demander sur le commit du lot avant toute publication.
-- GitHub Pages : publication non effectuée à ce stade. Le worktree `/private/tmp/ghpages-diag` est réservé à la préparation de `dist/` après approbation.
+- Revue Claude : approuvée au tour 3 sur `eb3878f61f610e4325aff94392f77d1f7f893e19` (aucun finding bloquant; remarque mineure sur l’échappement d’identifiants fermés). Revue indépendante du snapshot au même SHA approuvée.
+- Validation indépendante : installation hors ligne, `pnpm build` et `pnpm lint` réussis; les deux fichiers protégés restent identiques à la baseline. L’unique avertissement lint préexistant reste dans `src/hooks/useFactoryState.ts:88`.
+- `main` a été poussé jusqu’à `eb3878f` (trois commits du lot). GitHub Pages a été publié par le commit `236047b` sur `gh-pages`.
+- Vérification publique : HTTP 200; JEV voit le bandeau KPI et les quatre ateliers. Le HTML publié référence `index-DQPm3yWa.js` et `index-BT1ilr20.css`.
+- La page publique affiche le badge « Maquette » : aucun `VITE_FACTORY_API_BASE` n’a été fourni à cette compilation statique. Le branchement LIVE et son fallback restent présents dans le code; pour les données live sur Pages, il faudra fournir cette variable au moment du build.
 - URL cible : <https://freemanflow10.github.io/usine-projets-dashboard/>.
