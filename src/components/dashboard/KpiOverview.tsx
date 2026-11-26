@@ -34,7 +34,13 @@ function NumberTicker({ value, isPaused, reduced }: NumberTickerProps): ReactEle
   const displayedRef = useRef(displayed);
 
   useEffect(() => {
-    if (reduced || isPaused) return;
+    if (reduced || isPaused) {
+      displayedRef.current = value;
+      if (reduced) return;
+
+      const pausedFrame = window.requestAnimationFrame(() => setDisplayed(value));
+      return () => window.cancelAnimationFrame(pausedFrame);
+    }
 
     const startValue = displayedRef.current;
     const startTime = performance.now();
@@ -59,7 +65,8 @@ function NumberTicker({ value, isPaused, reduced }: NumberTickerProps): ReactEle
     return () => window.cancelAnimationFrame(frameId);
   }, [isPaused, reduced, value]);
 
-  return <span aria-hidden="true">{numberFormat.format(reduced ? value : displayed)}</span>;
+  const visibleValue = reduced || isPaused ? value : displayed;
+  return <span aria-hidden="true">{numberFormat.format(visibleValue)}</span>;
 }
 
 function formatUpdatedAt(updatedAt: string): string {

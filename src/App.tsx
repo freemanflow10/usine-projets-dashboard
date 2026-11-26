@@ -15,6 +15,12 @@ function reduceMotionInit(): boolean {
   );
 }
 
+function focusTrigger(selector: string): void {
+  window.requestAnimationFrame(() => {
+    document.querySelector<HTMLButtonElement>(selector)?.focus();
+  });
+}
+
 export default function App(): ReactElement {
   const { state, connection, approveDock, resetDemo } = useFactoryState();
   const [selectedId, setSelectedId] = useState<StationId | null>(null);
@@ -23,9 +29,21 @@ export default function App(): ReactElement {
   const [reduced] = useState(reduceMotionInit);
   const selectedStation = state.stations.find((station) => station.id === selectedId) ?? null;
 
+  const closeWorkshop = (): void => {
+    if (openWorkshop) focusTrigger(`[data-workshop-trigger="${openWorkshop}"]`);
+    setOpenWorkshop(null);
+  };
+
+  const closeStation = (): void => {
+    if (selectedId) focusTrigger(`[data-station-trigger="${selectedId}"]`);
+    setSelectedId(null);
+  };
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
+        if (selectedId) focusTrigger(`[data-station-trigger="${selectedId}"]`);
+        else if (openWorkshop) focusTrigger(`[data-workshop-trigger="${openWorkshop}"]`);
         setSelectedId(null);
         setOpenWorkshop(null);
         return;
@@ -47,7 +65,7 @@ export default function App(): ReactElement {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [openWorkshop, selectedId]);
 
   const handleOpenWorkshop = (id: WorkshopId): void => {
     setOpenWorkshop(id);
@@ -91,7 +109,7 @@ export default function App(): ReactElement {
             workshops={state.workshops}
             openId={openWorkshop}
             onOpen={handleOpenWorkshop}
-            onClose={() => setOpenWorkshop(null)}
+            onClose={closeWorkshop}
           />
 
           <StationPanel
@@ -102,7 +120,7 @@ export default function App(): ReactElement {
               selectedStation ? (
                 <StationDrawer
                   station={selectedStation}
-                  onClose={() => setSelectedId(null)}
+                  onClose={closeStation}
                   onApprove={approveDock}
                 />
               ) : null

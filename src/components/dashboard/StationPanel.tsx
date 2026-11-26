@@ -96,7 +96,8 @@ export default function StationPanel({
       ) : (
         <ul className="mt-3 space-y-2">
           {stations.map((station) => {
-            const Icon = KIND_META[station.kind].icon;
+            const kind = KIND_META[station.kind] ?? KIND_META.machine;
+            const Icon = kind.icon;
             const status = STATUS_META[station.status];
             const isSelected = station.id === selectedId;
 
@@ -106,6 +107,7 @@ export default function StationPanel({
                   type="button"
                   onClick={() => onOpen(station.id)}
                   aria-pressed={isSelected}
+                  data-station-trigger={station.id}
                   className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-factory-acc ${
                     isSelected
                       ? "border-factory-acc/45 bg-factory-acc/[0.08]"
@@ -124,7 +126,7 @@ export default function StationPanel({
                       </span>
                     </span>
                     <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-factory-mut/75">
-                      <span>{KIND_META[station.kind].label}</span>
+                      <span>{kind.label}</span>
                       {station.pendingBoxes > 0 ? (
                         <span className="font-medium text-factory-warn">
                           {station.pendingBoxes} en attente

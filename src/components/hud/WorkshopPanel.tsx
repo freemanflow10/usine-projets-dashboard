@@ -147,6 +147,7 @@ function WorkshopCards({ workshops, openId, onOpen }: WorkshopViewProps): ReactE
                 onClick={() => onOpen(workshop.id)}
                 aria-expanded={isOpen}
                 aria-controls={isOpen ? `workshop-details-${workshop.id}` : undefined}
+                data-workshop-trigger={workshop.id}
                 className="min-w-0 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-factory-acc"
               >
                 <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-factory-mut">
@@ -208,7 +209,8 @@ function WorkshopCards({ workshops, openId, onOpen }: WorkshopViewProps): ReactE
               <button
                 type="button"
                 onClick={() => onOpen(workshop.id)}
-                aria-label={`${isOpen ? "Afficher" : "Ouvrir"} la fiche ${workshop.title}`}
+                aria-label={`${isOpen ? "Fermer" : "Ouvrir"} la fiche ${workshop.title}`}
+                data-workshop-trigger={workshop.id}
                 className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-white transition hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-factory-acc"
               >
                 Fiche
@@ -253,6 +255,7 @@ function ProgressView({ workshops, openId, onOpen }: WorkshopViewProps): ReactEl
               type="button"
               onClick={() => onOpen(workshop.id)}
               aria-pressed={isOpen}
+              data-workshop-trigger={workshop.id}
               className="group block w-full rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-factory-acc"
             >
               <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">

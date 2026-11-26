@@ -45,19 +45,17 @@ export default function StationDrawer({
 }: StationDrawerProps): ReactElement | null {
   if (!station) return null;
   const status = STATUS_PILL[station.status];
-  const metrics = station.metrics.map((metric) => {
-    if (station.canApprove && metric.label === "En attente") {
-      return { ...metric, value: String(station.pendingBoxes) };
-    }
-    return metric;
-  });
+  const kindLabel = KIND_LABEL[station.kind] ?? "Poste";
+  const metrics = station.metrics.filter(
+    (metric) => metric.label.trim().toLocaleLowerCase("fr-FR") !== "en attente",
+  );
 
   return (
     <section aria-label={`Fiche station : ${station.label}`} className="rounded-2xl border border-factory-acc/30 bg-factory-card2/85 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-factory-acc">
-            {KIND_LABEL[station.kind]} · station
+            {kindLabel} · station
           </p>
           <h3 className="mt-1 text-base font-semibold text-white">{station.label}</h3>
         </div>
@@ -85,7 +83,7 @@ export default function StationDrawer({
             <dd className="text-xs font-semibold text-white">{metric.value}</dd>
           </div>
         ))}
-        {station.pendingBoxes > 0 ? (
+        {station.pendingBoxes > 0 || station.canApprove ? (
           <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2">
             <dt className="text-xs text-factory-mut">Cartons en attente</dt>
             <dd className="text-xs font-semibold text-factory-warn">{station.pendingBoxes}</dd>
