@@ -9,6 +9,14 @@ import ConveyorBelt from "./ConveyorBelt";
 import FactoryEnvironment from "./FactoryEnvironment";
 import FactoryPostProcessing from "./FactoryPostProcessing";
 
+// Post-traitement désactivé par défaut : l'EffectComposer/UnrealBloomPass
+// produit un rendu noir sur certains GPU/ANGLE sans erreur console. La scène
+// procédurale (matériaux emissifs + pointLights) reste correcte sans bloom.
+// Réactivation : `VITE_ENABLE_BLOOM=1 pnpm build`.
+const ENABLE_BLOOM =
+  (import.meta.env as Record<string, string | undefined>).VITE_ENABLE_BLOOM ===
+  "1";
+
 export interface FactoryCanvasProps {
   stations: Station[];
   flows: ConveyorFlow[];
@@ -108,7 +116,7 @@ export default function FactoryCanvas({
         {flows.map((flow) => (
           <ConveyorBelt key={flow.id} flow={flow} isPaused={isPaused} />
         ))}
-        <FactoryPostProcessing />
+        {ENABLE_BLOOM ? <FactoryPostProcessing /> : null}
       </Canvas>
     </div>
   );
