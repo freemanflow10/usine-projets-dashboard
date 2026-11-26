@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Diagnostic — L'usine des projets</title>
+<style>body{font-family:system-ui,sans-serif;background:#0e1116;color:#fff;margin:0;padding:24px;line-height:1.5}
+h1{font-size:20px;margin-top:0}p,li{font-size:14px}#g{border:1px solid #3a4861;display:block;margin:16px 0}</style></head>
+<body>
+<h1>Diagnostic — L'usine des projets</h1>
+<ul id="out"></ul>
+<canvas id="g" width="320" height="200"></canvas>
+<script>
+const out=document.getElementById('g');
+const g=document.getElementById('out');
+const log=(ok,label,detail)=>{const li=document.createElement('li');li.textContent=(ok?'✔ ':'✖ ')+label+(detail?' — '+detail:'');g.appendChild(li);};
+// 1. JS + UA
+log(true,'Script chargé',navigator.userAgent.slice(0,90));
+// 2. Contexte WebGL
+let gl=null,info=null,fail=null;
+try{ gl=out.getContext('webgl2')||out.getContext('webgl'); if(gl){const d=gl.getExtension('WEBGL_debug_renderer_info'); info=d? gl.getParameter(d.UNMASKED_VENDOR_WEBGL)+' / '+gl.getParameter(d.UNMASKED_RENDERER_WEBGL) : String(gl.getParameter(gl.VENDOR))+' / '+gl.getParameter(gl.RENDERER);}}catch(e){fail=e.message}
+const is2=gl && (gl instanceof WebGL2RenderingContext);
+log(!!gl,'Contexte WebGL', fail || (gl?(is2?'WebGL2':'WebGL1')+' | '+(info||'n/d'):'indisponible'));
+// 3. Rendu brut : fond bleu sombre + gros triangle rouge (test visuel GPU)
+if(gl){
+  const vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}');gl.compileShader(vs);
+  const fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,'precision mediump float;void main(){gl_FragColor=vec4(1.,0.15,0.15,1.);}');gl.compileShader(fs);
+  const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);gl.useProgram(pr);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,0,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.clearColor(0.04,0.09,0.22,1);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,3);
+  log(true,'Rendu GL en cours','Un fond bleu nuit + triangle rouge doivent apparaître dans le cadre ci-dessus');
+  try{const px=new Uint8Array(3);gl.readPixels(160,100,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);log(true,'readPixels centre','rgb('+px[0]+','+px[1]+','+px[2]+') — attendu ~rouge clair (255,38,38)');}catch(e){log(false,'readPixels',e.message)}
+}
+// 4. Bundle + CSS accessibles
+['assets/index-CUVqFju9.js','assets/index-Cw9Irs0c.css'].forEach(u=>{
+  fetch(u).then(r=>log(r.ok,'GET '+u.split('/').pop(),'HTTP '+r.status)).catch(e=>log(false,'GET '+u.split('/').pop(),e.message));
+});
+</script>
+</body></html>
