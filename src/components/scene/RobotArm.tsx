@@ -3,6 +3,9 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useCursor } from "@react-three/drei";
 import type { Group, Mesh } from "three";
 import type { Station } from "../../types/factory";
+import OptionalGlbModel from "./ModelLoader";
+import { FACTORY_MODEL_URLS } from "./modelAssets";
+import StationLabel from "./StationLabel";
 
 export interface RobotArmProps {
   station: Station;
@@ -44,43 +47,47 @@ function RobotArm({ station, selected, isPaused, onSelect }: RobotArmProps) {
 
   return (
     <group position={[x, 0, z]} onPointerOver={handleOver} onPointerOut={handleOut} onClick={handleClick}>
-      {/* base */}
-      <mesh position={[0, 0.16, 0]} castShadow>
-        <cylinderGeometry args={[0.6, 0.7, 0.32, 24]} />
-        <meshStandardMaterial color="#20283a" metalness={0.55} roughness={0.4} />
-      </mesh>
-      {/* tourelle rotative */}
-      <group ref={turret} position={[0, 0.34, 0]}>
-        <mesh position={[0, 0.28, 0]} castShadow>
-          <cylinderGeometry args={[0.42, 0.5, 0.56, 20]} />
-          <meshStandardMaterial color="#26304a" metalness={0.6} roughness={0.35} />
-        </mesh>
-        {/* bras supérieur */}
-        <group ref={upper} position={[0, 0.6, 0]} rotation-x={0.42}>
-          <mesh position={[0, 0.5, 0]} castShadow>
-            <boxGeometry args={[0.42, 1.0, 0.42]} />
-            <meshStandardMaterial color={color} metalness={0.5} roughness={0.35} emissive={color} emissiveIntensity={highlight ? 0.5 : 0.12} />
-          </mesh>
-          {/* avant-bras */}
-          <group ref={elbow} position={[0, 1.02, 0]} rotation-x={-0.55}>
-            <mesh position={[0, 0.45, 0]} castShadow>
-              <boxGeometry args={[0.34, 0.9, 0.34]} />
-              <meshStandardMaterial color={color} metalness={0.5} roughness={0.35} emissive={color} emissiveIntensity={0.08} />
+      <StationLabel label={station.label} position={[0, 3.15, 0]} />
+      <OptionalGlbModel
+        url={FACTORY_MODEL_URLS.robotArm}
+        color={color}
+        fallback={
+          <group>
+            <mesh position={[0, 0.16, 0]} castShadow>
+              <cylinderGeometry args={[0.6, 0.7, 0.32, 24]} />
+              <meshStandardMaterial color="#20283a" metalness={0.55} roughness={0.4} />
             </mesh>
-            {/* pince */}
-            <group position={[0, 0.92, 0]}>
-              <mesh ref={f1} position={[-0.16, 0.05, 0]}>
-                <boxGeometry args={[0.08, 0.26, 0.16]} />
-                <meshStandardMaterial color="#cfd8ea" metalness={0.7} roughness={0.25} />
+            <group ref={turret} position={[0, 0.34, 0]}>
+              <mesh position={[0, 0.28, 0]} castShadow>
+                <cylinderGeometry args={[0.42, 0.5, 0.56, 20]} />
+                <meshStandardMaterial color="#26304a" metalness={0.6} roughness={0.35} />
               </mesh>
-              <mesh ref={f2} position={[0.16, 0.05, 0]}>
-                <boxGeometry args={[0.08, 0.26, 0.16]} />
-                <meshStandardMaterial color="#cfd8ea" metalness={0.7} roughness={0.25} />
-              </mesh>
+              <group ref={upper} position={[0, 0.6, 0]} rotation-x={0.42}>
+                <mesh position={[0, 0.5, 0]} castShadow>
+                  <boxGeometry args={[0.42, 1.0, 0.42]} />
+                  <meshStandardMaterial color={color} metalness={0.5} roughness={0.35} emissive={color} emissiveIntensity={highlight ? 0.5 : 0.12} />
+                </mesh>
+                <group ref={elbow} position={[0, 1.02, 0]} rotation-x={-0.55}>
+                  <mesh position={[0, 0.45, 0]} castShadow>
+                    <boxGeometry args={[0.34, 0.9, 0.34]} />
+                    <meshStandardMaterial color={color} metalness={0.5} roughness={0.35} emissive={color} emissiveIntensity={0.08} />
+                  </mesh>
+                  <group position={[0, 0.92, 0]}>
+                    <mesh ref={f1} position={[-0.16, 0.05, 0]}>
+                      <boxGeometry args={[0.08, 0.26, 0.16]} />
+                      <meshStandardMaterial color="#cfd8ea" metalness={0.7} roughness={0.25} />
+                    </mesh>
+                    <mesh ref={f2} position={[0.16, 0.05, 0]}>
+                      <boxGeometry args={[0.08, 0.26, 0.16]} />
+                      <meshStandardMaterial color="#cfd8ea" metalness={0.7} roughness={0.25} />
+                    </mesh>
+                  </group>
+                </group>
+              </group>
             </group>
           </group>
-        </group>
-      </group>
+        }
+      />
       {/* anneau */}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]}>
         <ringGeometry args={[0.78, 0.95, 36]} />

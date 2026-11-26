@@ -77,7 +77,10 @@ export default function App() {
           setOpenWorkshop(id);
           setSelectedId(null);
         }}
-        onClose={() => setOpenWorkshop(null)}
+        onClose={() => {
+          setOpenWorkshop(null);
+          setSelectedId(null);
+        }}
       />
 
       <StationDrawer
@@ -86,14 +89,6 @@ export default function App() {
         onApprove={handleApprove}
       />
 
-      <button
-        type="button"
-        onClick={() => setSelectedId(null)}
-        className="absolute bottom-4 right-4 z-30 rounded-lg border border-factory-line bg-factory-card/90 px-3 py-1.5 text-xs text-factory-mut backdrop-blur-md transition hover:border-factory-acc hover:text-white"
-        title="Revenir à la vue d'ensemble"
-      >
-        ⌖ Vue d’ensemble
-      </button>
     </div>
   );
 }

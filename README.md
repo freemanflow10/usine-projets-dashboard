@@ -49,3 +49,41 @@ Fichier modèle : `.env.example` (copier vers `.env.local`).
 
 `pnpm build` avec `base: './'` puis publication du dossier `dist/`
 sur GitHub Pages (voir la branche `gh-pages`).
+
+## Modèles 3D `.glb`
+
+Les modèles sont unitaires et se placent dans `public/models/`. Le chargeur
+les partage par URL avec `useGLTF` et conserve un fallback procédural tant
+qu'un fichier manque ou ne se charge pas.
+
+| Fichier | Usage | Budget maximal |
+| --- | --- | ---: |
+| `robot-arm.glb` | Bras Codex, Gemini et DeepSeek | 300 Ko |
+| `control-booth.glb` | Cabine vitrée du bureau | 300 Ko |
+| `silo.glb` | Futures cuves d'acquisition réutilisables | 200 Ko |
+| `server-rack.glb` | Racks de la salle des machines | 200 Ko |
+| `truck.glb` | Camion du quai | 300 Ko |
+| `cardboard-box.glb` | Cartons des tapis et des bouchons | 100 Ko |
+
+Garder l'ensemble de l'usine sous **2 Mo** et les textures à **512 × 512 px**
+maximum. Avant d'ajouter un modèle, générer le composant TypeScript et la
+copie optimisée avec `gltfjsx` :
+
+```bash
+pnpm dlx gltfjsx public/models/<nom>.glb --types --transform --resolution 512 --output src/components/scene/<Nom>.tsx
+```
+
+`--transform` produit une copie `-transformed.glb` avec compression Draco,
+textures WebP redimensionnées et géométries dédupliquées. Après contrôle de
+taille, remplacer le fichier source par cette copie en conservant le nom
+canonique attendu par le chargeur (par exemple `robot-arm.glb`). Garder le
+fichier TypeScript généré pour accéder à une structure de nœuds typée si le
+modèle a besoin d'un comportement dédié. Le composant généré référence
+initialement la copie `-transformed.glb`; si cette copie est renommée en nom
+canonique, ajuster aussi son appel `useGLTF` si le composant généré est utilisé.
+
+Les origines des modèles doivent être alignées sur l'origine de leur station;
+les bras, camions et cabines doivent garder l'échelle des fallbacks procéduraux.
+Le chargeur surcharge la couleur du bras par `station.color` et active les
+ombres sur les meshes. `silo.glb` est réservé aux futures stations d'acquisition
+qui ne font pas encore partie du contrat `FactoryState`.
