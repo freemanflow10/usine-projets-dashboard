@@ -29,6 +29,7 @@ date: 2026-11-26
 - `pnpm lint` : PASS; un avertissement préexistant subsiste dans `src/hooks/useFactoryState.ts:88`.
 - `git diff --check` : PASS.
 - Aperçu navigateur local en mode maquette, `http://localhost:4176/` : vue cartes, vue en barres, fiche d’atelier, fiche station et approbation locale du quai observées. Après approbation simulée, le quai passe à stable et sa fiche affiche zéro carton en attente.
+- Contrôle visuel réalisé sur bureau (1280×720). Les règles responsive sont présentes, mais le rendu mobile n’a pas été vérifié visuellement.
 - Le parcours n’a pas appelé d’API : `VITE_FACTORY_API_BASE` était vide pour l’aperçu.
 
 ## Revue et publication
