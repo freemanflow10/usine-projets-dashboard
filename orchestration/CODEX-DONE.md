@@ -36,3 +36,9 @@ Créés : `orchestration/CODEX-DONE.md`, `public/models/.gitkeep`, `src/componen
 - `gh-pages` : `537e656bd1099a363e830b07bb56371260bdfa3c` (`Publier le rendu 3D et les modèles optionnels`), poussé à la racine avec les fichiers du build.
 - Vérification HTTP du site et du bundle : 200.
 - Réserve : le contrôle visuel du canvas public reste à faire dans un navigateur qui répond ; aucune preuve visuelle finale n'a pu être obtenue dans cette session.
+
+## Réserve levée (26/11, vérification Claude)
+
+- Capture Playwright (Chrome headless) sur `https://freemanflow10.github.io/usine-projets-dashboard/` : canvas confirmé — usine isométrique complète (8 stations, 2 tapis, robots, cabine, véhicule), HUD opérationnel (KPIs, badge MAQUETTE, Pause, panneau 1 colonne). HTTP 200, bundle servis.
+- 14 requêtes `404 models/*.glb` : **comportement prévu** du fallback procédural (`ModelLoader.tsx` sonde par fetch + magic glTF). Aucune erreur rouge, scène intacte.
+- Mineur (non bloquant) : commentaire `ModelLoader.tsx:34` « un seul probe par URL » non tenu à la concurrence — chaque instance relance un fetch avant résolution du cache `pending` (14 404 au lieu de 6). Pouvoir coalescer le probe `pending` si on veut zéro doublon.
