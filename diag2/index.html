@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnostic 2 — app réelle + lecture de pixels</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#0e1116;color:#fff;padding:20px;margin:0;line-height:1.5}
+h1{font-size:18px}h2{font-size:15px;margin:14px 0 6px}pre{background:#12161f;border:1px solid #2c3240;padding:10px;font-size:12px;overflow:auto;white-space:pre-wrap;max-height:200px}
+.ok{color:#3ddc84}.bad{color:#ff6b6b}.warn{color:#ffb020}
+iframe{width:560px;height:340px;border:1px solid #3a4861;background:#000;display:block;margin:10px 0}
+slot b{display:inline-block;min-width:130px}
+</style></head><body>
+<h1>Diagnostic 2 — l'app dans un cadre, pixels lus depuis la page</h1>
+<p id="status">Chargement…</p>
+<h2>La page réelle (iframe same-origin)</h2>
+<iframe id="f" src="../index.html"></iframe>
+<h2>Mesures</h2>
+<pre id="coords"></pre>
+<script>
+const st=document.getElementById('status'), co=document.getElementById('coords');
+function log(x){ co.textContent += x + "\n"; }
+const f=document.getElementById('f');
+const iframeReady=()=>{ try{ return (f.contentWindow && f.contentWindow.document && f.contentWindow.document.getElementById('root')); }catch(e){ return null; } };
+(async()=>{
+  await new Promise(r=>setTimeout(r,4500));
+  let root=iframeReady();
+  st.textContent = root ? 'Cadre chargé — analyse en cours…' : 'Cadre chargé (DOM accessible) — analyse en cours…';
+  const step=[];
+  if(!root){ st.textContent='DOM du cadre non accessible (cross-origin?).'; }
+  else {
+    const kids=root.children.length;
+    const cv=root.querySelector('canvas');
+    step.push('root.children='+kids);
+    step.push('canvas présent='+!!cv);
+    if(cv){
+      step.push('canvas px='+cv.width+'x'+cv.height);
+      step.push('canvas CSS='+Math.round(cv.getBoundingClientRect().width)+'x'+Math.round(cv.getBoundingClientRect().height));
+    }
+    // clamp : le HUD est-il dans le DOM ?
+    step.push('body text len='+f.contentWindow.document.body.innerText.length);
+    step.push('text='+JSON.stringify(f.contentWindow.document.body.innerText.trim().slice(0,60)));
+  }
+  log('ARBRE: '+step.join(' | '));
+
+  // Lecture de pixels du canvas réel — on tente plusieurs fois pour attraper une frame
+  let gl=null, readResult='n/a';
+  if(root){ const cv=root.querySelector('canvas');
+    if(cv){
+      try{
+        // impossible de réutiliser le contexte webgl2 déjà pris par l'app? getContext renvoie le MÊME contexte
+        gl = cv.getContext('webgl2') || cv.getContext('webgl');
+        if(gl){
+          const renderer=d=>{ try{const ext=gl.getExtension('WEBGL_debug_renderer_info'); return ext? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL).slice(0,40):'n/d';}catch(e){return 'n/d';} };
+          log('GL: '+gl.getParameter(gl.VERSION)+' | '+renderer());
+          for(let i=0;i<3;i++){
+            await new Promise(r=>setTimeout(r,700));
+            const px=new Uint8Array(4);
+            const w=gl.drawingBufferWidth, h=gl.drawingBufferHeight;
+            gl.readPixels(Math.floor(w/2),Math.floor(h/2),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+            readResult='r'+px[0]+' g'+px[1]+' b'+px[2]+' a'+px[3];
+            log('  lecture centre #'+i+' ('+w+'x'+h+'): '+readResult+( (px[2]>40||px[0]>40) ? '  → NON NOIR' : '  → NOIR'));
+          }
+        } else { log('GL: aucun contexte webgl sur le canvas'); }
+      }catch(e){ log('ERREUR readPixels: '+e.message); }
+    }
+  }
+  st.textContent='Terminé.';
+  log('FIN');
+})();
+</script></body></html>
