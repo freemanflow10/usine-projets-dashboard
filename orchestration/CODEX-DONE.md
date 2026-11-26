@@ -21,7 +21,8 @@ Le composer suit la taille et le pixel ratio du renderer ; le DPR du canvas est 
 - `pnpm build` : réussi (`tsc -b` strict puis Vite). Bundle JavaScript : 1 297,77 Ko (357,71 Ko gzip) ; avertissement non bloquant de chunk supérieur à 500 Ko.
 - `pnpm lint` : réussi ; deux avertissements préexistants dans `src/App.tsx` et `src/hooks/useFactoryState.ts`. Aucun avertissement dans les fichiers de ce lot.
 - `git diff --check` : réussi.
-- Contrôle navigateur précédent : scène visible, huit labels, deux tapis et HUD ; Pause/Reprendre fonctionnait. Pendant la vérification finale, le DOM a confirmé le titre, le canvas et les huit labels, mais le navigateur de contrôle est devenu non réactif avant une nouvelle capture visuelle. La vérification HTTP/visuelle publique est à compléter après publication.
+- Contrôle navigateur local précédent : scène visible, huit labels, deux tapis et HUD ; Pause/Reprendre fonctionnait. La capture visuelle finale/public n'a pas pu être confirmée : JEV a rendu la main avec `Target.createTarget: page unresponsive`.
+- Site public `https://freemanflow10.github.io/usine-projets-dashboard/` : HTTP 200. L'HTML référence `assets/index-Y84J_jir.js` et `assets/index-C1LFeHJu.css` ; le bundle JavaScript répond aussi HTTP 200. Le contenu est bien publié, mais l'affichage du canvas sur le site public reste à recontrôler visuellement dans un navigateur réactif.
 
 ## Fichiers
 
@@ -31,4 +32,7 @@ Créés : `orchestration/CODEX-DONE.md`, `public/models/.gitkeep`, `src/componen
 
 ## Déploiement
 
-À compléter après le commit/push de `main`, la publication du contenu de `dist/` à la racine de `gh-pages`, puis le contrôle HTTP et visuel du site public.
+- `main` : `968755ad8d2f79ebcad3574e6adc8c880be03d5d` (`Rendre visible l'usine 3D et moderniser le cockpit`), poussé.
+- `gh-pages` : `537e656bd1099a363e830b07bb56371260bdfa3c` (`Publier le rendu 3D et les modèles optionnels`), poussé à la racine avec les fichiers du build.
+- Vérification HTTP du site et du bundle : 200.
+- Réserve : le contrôle visuel du canvas public reste à faire dans un navigateur qui répond ; aucune preuve visuelle finale n'a pu être obtenue dans cette session.
