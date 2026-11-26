@@ -5,10 +5,27 @@ import TopBar from "./components/hud/TopBar";
 import WorkshopPanel from "./components/hud/WorkshopPanel";
 import StationDrawer from "./components/hud/StationDrawer";
 import FactoryCanvas from "./components/scene/FactoryCanvas";
+import CanvasBoundary from "./components/scene/CanvasBoundary";
 
 const reduceMotionInit = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// WebGL peut être absent ou désactivé (profil, entreprise, matériel) : on ne
+// monte même pas le canvas dans ce cas, on affiche la même solution de repli
+// que la barrière d'erreur. `ssr` safe.
+const webglAvailableInit = () => {
+  if (typeof window === "undefined") return true;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(
+      window.WebGLRenderingContext &&
+        (canvas.getContext("webgl2") || canvas.getContext("webgl")),
+    );
+  } catch {
+    return false;
+  }
+};
 
 // Assemblage Radar 3D + Cockpit HTML (§7) : la scène remonte le clic, le HUD
 // porte 100 % des informations. La scène ne lit que l'état et isPaused.
@@ -18,6 +35,7 @@ export default function App() {
   const [openWorkshop, setOpenWorkshop] = useState<WorkshopId | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const reduced = useMemo(reduceMotionInit, []);
+  const webglAvailable = useMemo(webglAvailableInit, []);
 
   const selectedStation = state.stations.find((s) => s.id === selectedId) || null;
 
@@ -44,16 +62,20 @@ export default function App() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-factory-bg text-white">
-      <FactoryCanvas
-        stations={state.stations}
-        flows={state.flows}
-        selectedId={selectedId}
-        isPaused={isPaused}
-        onSelectStation={(id) => {
-          setSelectedId(id);
-          setOpenWorkshop(null);
-        }}
-      />
+      <CanvasBoundary disabled={!webglAvailable}>
+        {webglAvailable ? (
+          <FactoryCanvas
+            stations={state.stations}
+            flows={state.flows}
+            selectedId={selectedId}
+            isPaused={isPaused}
+            onSelectStation={(id) => {
+              setSelectedId(id);
+              setOpenWorkshop(null);
+            }}
+          />
+        ) : null}
+      </CanvasBoundary>
 
       <TopBar
         workshopsCount={state.globalKpis.workshopsCount}
