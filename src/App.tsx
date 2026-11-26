@@ -1,116 +1,115 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import type { ReactElement } from "react";
 import type { StationId, WorkshopId } from "./types/factory";
 import { useFactoryState } from "./hooks/useFactoryState";
+import KpiOverview from "./components/dashboard/KpiOverview";
+import StationPanel from "./components/dashboard/StationPanel";
 import TopBar from "./components/hud/TopBar";
 import WorkshopPanel from "./components/hud/WorkshopPanel";
 import StationDrawer from "./components/hud/StationDrawer";
-import FactoryCanvas from "./components/scene/FactoryCanvas";
-import CanvasBoundary from "./components/scene/CanvasBoundary";
 
-const reduceMotionInit = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function reduceMotionInit(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
-// WebGL peut être absent ou désactivé (profil, entreprise, matériel) : on ne
-// monte même pas le canvas dans ce cas, on affiche la même solution de repli
-// que la barrière d'erreur. `ssr` safe.
-const webglAvailableInit = () => {
-  if (typeof window === "undefined") return true;
-  try {
-    const canvas = document.createElement("canvas");
-    return Boolean(
-      window.WebGLRenderingContext &&
-        (canvas.getContext("webgl2") || canvas.getContext("webgl")),
-    );
-  } catch {
-    return false;
-  }
-};
-
-// Assemblage Radar 3D + Cockpit HTML (§7) : la scène remonte le clic, le HUD
-// porte 100 % des informations. La scène ne lit que l'état et isPaused.
-export default function App() {
+export default function App(): ReactElement {
   const { state, connection, approveDock, resetDemo } = useFactoryState();
   const [selectedId, setSelectedId] = useState<StationId | null>(null);
   const [openWorkshop, setOpenWorkshop] = useState<WorkshopId | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const reduced = useMemo(reduceMotionInit, []);
-  const webglAvailable = useMemo(webglAvailableInit, []);
+  const [reduced] = useState(reduceMotionInit);
+  const selectedStation = state.stations.find((station) => station.id === selectedId) ?? null;
 
-  const selectedStation = state.stations.find((s) => s.id === selectedId) || null;
-
-  // Pause globale : bouton HautDroit + raccourci Espace ; Échap ferme fiche/drawer.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === " " || e.key === "p") {
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-        e.preventDefault();
-        setIsPaused((v) => !v);
-      } else if (e.key === "Escape") {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
         setSelectedId(null);
         setOpenWorkshop(null);
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        target.closest("button, a, input, textarea, select, [contenteditable='true']")
+      ) {
+        return;
+      }
+
+      if (event.key === " " || event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        setIsPaused((paused) => !paused);
       }
     };
+
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const handleApprove = () => {
-    approveDock();
-    // la fiche se met à jour via l'état (quai → ok, feu vert dessiné)
+  const handleOpenWorkshop = (id: WorkshopId): void => {
+    setOpenWorkshop(id);
+    setSelectedId(null);
+  };
+
+  const handleOpenStation = (id: StationId): void => {
+    setSelectedId(id);
+    setOpenWorkshop(null);
+  };
+
+  const handleReset = (): void => {
+    resetDemo();
+    setSelectedId(null);
+    setOpenWorkshop(null);
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-factory-bg text-white">
-      <CanvasBoundary disabled={!webglAvailable}>
-        {webglAvailable ? (
-          <FactoryCanvas
-            stations={state.stations}
-            flows={state.flows}
-            selectedId={selectedId}
-            isPaused={isPaused}
-            onSelectStation={(id) => {
-              setSelectedId(id);
-              setOpenWorkshop(null);
-            }}
-          />
-        ) : null}
-      </CanvasBoundary>
-
+    <div id="top" className={`min-h-screen bg-factory-bg text-white ${isPaused ? "dashboard-paused" : ""}`}>
       <TopBar
-        workshopsCount={state.globalKpis.workshopsCount}
-        ideasTotal={state.globalKpis.ideasTotal}
-        ideasToSort={state.globalKpis.ideasToSort}
         connection={connection}
         isPaused={isPaused}
         reduced={reduced}
-        onTogglePause={() => setIsPaused((v) => !v)}
-        onReset={() => {
-          resetDemo();
-          setSelectedId(null);
-          setOpenWorkshop(null);
-        }}
+        onTogglePause={() => setIsPaused((paused) => !paused)}
+        onReset={handleReset}
       />
 
-      <WorkshopPanel
-        workshops={state.workshops}
-        openId={openWorkshop}
-        onOpen={(id) => {
-          setOpenWorkshop(id);
-          setSelectedId(null);
-        }}
-        onClose={() => {
-          setOpenWorkshop(null);
-          setSelectedId(null);
-        }}
-      />
+      <main className="mx-auto w-full max-w-[1640px] px-4 pb-12 pt-7 sm:px-6 lg:px-8">
+        <KpiOverview
+          workshopsCount={state.globalKpis.workshopsCount}
+          ideasTotal={state.globalKpis.ideasTotal}
+          ideasToSort={state.globalKpis.ideasToSort}
+          stationsCount={state.stations.length}
+          updatedAt={state.updatedAt}
+          isPaused={isPaused}
+          reduced={reduced}
+        />
 
-      <StationDrawer
-        station={selectedStation}
-        onClose={() => setSelectedId(null)}
-        onApprove={handleApprove}
-      />
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+          <WorkshopPanel
+            workshops={state.workshops}
+            openId={openWorkshop}
+            onOpen={handleOpenWorkshop}
+            onClose={() => setOpenWorkshop(null)}
+          />
 
+          <StationPanel
+            stations={state.stations}
+            selectedId={selectedId}
+            onOpen={handleOpenStation}
+            renderDetails={
+              selectedStation ? (
+                <StationDrawer
+                  station={selectedStation}
+                  onClose={() => setSelectedId(null)}
+                  onApprove={approveDock}
+                />
+              ) : null
+            }
+          />
+        </div>
+      </main>
     </div>
   );
 }

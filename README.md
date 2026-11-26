@@ -1,7 +1,8 @@
-# L'usine des projets — Dashboard 3D
+# L'usine des projets — Tableau de bord global
 
-Dashboard 3D isométrique de pilotage des ateliers, bâti sur le
-**cahier des charges `cahier_des_charges_deepseek_l_usine_des_projets.md`**.
+Tableau de bord de pilotage des projets, ateliers et stations de l’usine.
+L’interface principale présente les indicateurs globaux, les fiches projets et
+une vue de progression par atelier.
 
 ## Stack
 
@@ -14,10 +15,10 @@ Gestionnaire de paquets : **pnpm uniquement**.
 - `src/types/factory.ts` — contrat de données (source de vérité).
 - `src/data/mockFactoryState.ts` — données initiales + coordonnées 3D (§5).
 - `src/hooks/useFactoryState.ts` — accès à l'état + polling `/api/factory-state`.
-- `src/components/scene/` — scène 3D : aucun `fetch`, aucun texte long,
-  lit `FactoryState` et remonte les clics via `onSelectStation(id)`.
-- `src/components/hud/` — cockpit HTML/CSS : 100 % des KPIs, cartes,
-  barres de progression, boutons.
+- `src/components/dashboard/` — indicateurs globaux et liste des stations.
+- `src/components/hud/` — cartes et fiches d’atelier, fiche de station.
+- `src/components/scene/` — composants Three.js conservés dans le dépôt,
+  non montés par le tableau de bord global.
 - `server/` — exemple d'endpoint Node (hors build) : connecteurs
   Notion / RecrutMatch / Healthchecks + `POST /api/dock/approve` par token.
 

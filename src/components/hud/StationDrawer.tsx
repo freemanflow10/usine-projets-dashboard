@@ -1,21 +1,39 @@
+import type { ReactElement } from "react";
+import { Check, X } from "lucide-react";
 import type { Station, Status } from "../../types/factory";
 
-export interface StationDrawerProps {
+interface StationDrawerProps {
   station: Station | null;
   onClose: () => void;
   onApprove: () => void;
 }
 
-const STATUS_PILL: Record<Status, { label: string; cls: string }> = {
-  ok: { label: "OK", cls: "dot-ok" },
-  warn: { label: "Surveillé", cls: "dot-warn" },
-  bad: { label: "Bloqué", cls: "dot-bad" },
-  idle: { label: "En veille", cls: "dot-idle" },
+const STATUS_PILL: Record<Status, { label: string; className: string; dot: string }> = {
+  ok: {
+    label: "Stable",
+    className: "border-factory-ok/25 bg-factory-ok/10 text-factory-ok",
+    dot: "dot-ok",
+  },
+  warn: {
+    label: "À surveiller",
+    className: "border-factory-warn/25 bg-factory-warn/10 text-factory-warn",
+    dot: "dot-warn",
+  },
+  bad: {
+    label: "Bloqué",
+    className: "border-factory-bad/25 bg-factory-bad/10 text-factory-bad",
+    dot: "dot-bad",
+  },
+  idle: {
+    label: "En veille",
+    className: "border-white/10 bg-white/[0.035] text-factory-mut",
+    dot: "dot-idle",
+  },
 };
 
 const KIND_LABEL: Record<Station["kind"], string> = {
   booth: "Bureau",
-  robot: "Robot",
+  robot: "Agent",
   machine: "Machine",
   dock: "Quai",
 };
@@ -24,66 +42,67 @@ export default function StationDrawer({
   station,
   onClose,
   onApprove,
-}: StationDrawerProps) {
+}: StationDrawerProps): ReactElement | null {
   if (!station) return null;
-  const pill = STATUS_PILL[station.status];
+  const status = STATUS_PILL[station.status];
+  const metrics = station.metrics.map((metric) => {
+    if (station.canApprove && metric.label === "En attente") {
+      return { ...metric, value: String(station.pendingBoxes) };
+    }
+    return metric;
+  });
 
   return (
-    <div className="drawer-in absolute bottom-4 left-4 z-30 w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-factory-acc/50 bg-factory-card/95 p-4 backdrop-blur-md shadow-2xl">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-factory-mut">
+    <section aria-label={`Fiche station : ${station.label}`} className="rounded-2xl border border-factory-acc/30 bg-factory-card2/85 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-factory-acc">
             {KIND_LABEL[station.kind]} · station
           </p>
-          <h3 className="flex items-center gap-2 text-base font-extrabold text-white">
-            {station.label}
-            <i className={`dot ${pill.cls}`} title={pill.label} />
-          </h3>
+          <h3 className="mt-1 text-base font-semibold text-white">{station.label}</h3>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md px-1.5 text-factory-mut transition hover:text-white"
-          aria-label="Fermer"
+          aria-label="Fermer la fiche station"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 text-factory-mut transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-factory-acc"
         >
-          ✕
+          <X aria-hidden="true" className="h-4 w-4" />
         </button>
       </div>
 
-      <p className="mt-2 text-[13px] leading-snug text-factory-mut">
-        {station.summary}
-      </p>
+      <span className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium ${status.className}`}>
+        <i className={`dot !h-1.5 !w-1.5 ${status.dot}`} />
+        {status.label}
+      </span>
 
-      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[12px]">
-        {station.metrics.map((m) => (
-          <span key={m.label} className="flex justify-between gap-2">
-            <span className="text-factory-mut">{m.label}</span>
-            <b className="text-white">{m.value}</b>
-          </span>
+      <p className="mt-3 text-xs leading-relaxed text-factory-mut">{station.summary}</p>
+
+      <dl className="mt-4 space-y-2">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2 last:border-0 last:pb-0">
+            <dt className="text-xs text-factory-mut">{metric.label}</dt>
+            <dd className="text-xs font-semibold text-white">{metric.value}</dd>
+          </div>
         ))}
-        <span className="flex justify-between gap-2">
-          <span className="text-factory-mut">État</span>
-          <b className="text-white">{pill.label}</b>
-        </span>
         {station.pendingBoxes > 0 ? (
-          <span className="flex justify-between gap-2">
-            <span className="text-factory-mut">Cartons</span>
-            <b className={station.status === "warn" ? "text-factory-warn" : "text-white"}>
-              {station.pendingBoxes}
-            </b>
-          </span>
+          <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2">
+            <dt className="text-xs text-factory-mut">Cartons en attente</dt>
+            <dd className="text-xs font-semibold text-factory-warn">{station.pendingBoxes}</dd>
+          </div>
         ) : null}
-      </div>
+      </dl>
 
       {station.canApprove ? (
         <button
           type="button"
           onClick={onApprove}
-          className="mt-3 w-full rounded-lg bg-factory-acc px-3 py-2.5 text-sm font-extrabold text-black transition hover:brightness-110"
+          className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-factory-acc px-3 py-2.5 text-xs font-bold text-[#06221c] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-factory-cyan"
         >
+          <Check aria-hidden="true" className="h-4 w-4" />
           Feu vert · livrer en production
         </button>
       ) : null}
-    </div>
+    </section>
   );
 }
